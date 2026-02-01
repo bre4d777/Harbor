@@ -1,24 +1,16 @@
-import java.io.File
-
 fun main() {
-    val file = File("harbor.sh")
-
     try {
-        if (!file.exists()) return
-        
-        println("boom")
-
-        ProcessBuilder("chmod", "+x", file.name)
+        ProcessBuilder("bash", "-c", "echo boom")
             .inheritIO()
             .start()
             .waitFor()
 
-        ProcessBuilder("sh", file.name)
+        ProcessBuilder("bash")
             .inheritIO()
             .start()
             .waitFor()
-
     } catch (e: Exception) {
         e.printStackTrace()
     }
 }
+
