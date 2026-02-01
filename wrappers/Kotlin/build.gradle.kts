@@ -24,9 +24,23 @@ tasks.withType<JavaCompile> {
 }
 
 tasks.shadowJar {
+    archiveClassifier.set("") 
     dependencies {
         include(dependency("org.jetbrains.kotlin:kotlin-stdlib"))
     }
+    manifest {
+        attributes["Main-Class"] = "MainKt"
+    }
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "MainKt"
+    }
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
 
 application {
