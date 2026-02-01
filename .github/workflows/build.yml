@@ -2,74 +2,36 @@ name: Build Kotlin Wrapper JAR
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
     paths:
-      - 'wrappers/Kotlin/**'
-      - '.github/workflows/build-kotlin-wrapper.yml'
+      - wrappers/Kotlin/**
+      - .github/workflows/build.yml
   pull_request:
-    branches:
-      - main
-      - master
+    branches: [main, master]
     paths:
-      - 'wrappers/Kotlin/**'
+      - wrappers/Kotlin/**
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    permissions:
-      contents: write  # Required to push commits
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-      
-      - name: Grant execute permission for gradlew
-        working-directory: wrappers/Kotlin
+          java-version: 17
+          distribution: temurin
+          cache: gradle
+
+      - working-directory: wrappers/Kotlin
         run: chmod +x gradlew
-      
-      - name: Build with Gradle
-        working-directory: wrappers/Kotlin
+
+      - working-directory: wrappers/Kotlin
         run: ./gradlew clean shadowJar --no-daemon
-      
-      - name: Create jar directory in wrapper folder
-        working-directory: wrappers/Kotlin
-        run: mkdir -p jar
-      
-      - name: Copy JAR to jar folder
-        working-directory: wrappers/Kotlin
-        run: cp build/libs/*.jar jar/
-      
-      - name: List built JARs
-        working-directory: wrappers/Kotlin
-        run: ls -lh jar/
-      
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
-      
-      - name: Commit and push JAR
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add wrappers/Kotlin/jar/
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Build: Update Kotlin wrapper JAR - ${{ steps.date.outputs.date }}"
-            git push
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kotlin-wrapper-jar
+          path: wrappers/Kotlin/build/libs/*.jar
